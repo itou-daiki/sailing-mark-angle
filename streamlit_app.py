@@ -2,8 +2,8 @@ import streamlit as st
 
 st.title("マーク角度計算補助ツール（アップウィンド限定）")
 
-mark_angle = st.number_input("本船から見た上マークの角度（度）", min_value=0.0, max_value=360.0, value=0.0, step=0.1)
-close_hauled_angle = st.number_input("自艇のクローズホールドの帆走角度（度）", min_value=0.0, max_value=360.0, value=45.0, step=0.1)
+mark_angle = st.number_input("本船から見た上マークの角度（度）", min_value=0, max_value=360, value=0, step=1)
+close_hauled_angle = st.number_input("自艇のクローズホールドの帆走角度（度）", min_value=0, max_value=360, value=45, step=1)
 
 if st.button("計算"):
     angle_difference = mark_angle - close_hauled_angle
