@@ -6,21 +6,25 @@ mark_angle = st.number_input("本船から見た上マークの角度（度）",
 close_hauled_angle = st.number_input("自艇のクローズホールドの帆走角度（度）", min_value=0.0, max_value=360.0, value=45.0, step=0.1)
 
 if st.button("計算"):
-    relative_angle = mark_angle - close_hauled_angle
+    angle_difference = mark_angle - close_hauled_angle
     
-    # 角度を-180度から180度の範囲に調整
-    if relative_angle > 180:
-        relative_angle -= 360
-    elif relative_angle < -180:
-        relative_angle += 360
+    # 角度の差を-180度から180度の範囲に調整
+    if angle_difference > 180:
+        angle_difference -= 360
+    elif angle_difference < -180:
+        angle_difference += 360
     
-    st.write(f"上マークの相対的な角度: {relative_angle:.1f}度")
+    # 角度の差の絶対値を計算
+    abs_angle_difference = abs(angle_difference)
     
-    if relative_angle > 0:
-        st.write("結果: プラス（オーバースタンド）")
-    elif relative_angle < 0:
-        st.write("結果: マイナス（アンダースタンド）")
+    st.write(f"上マークと帆走角度の差: {angle_difference:.1f}度")
+    
+    if abs_angle_difference < 45:
+        st.write("結果: プラス（良好な位置）")
+    elif abs_angle_difference > 45:
+        st.write("結果: マイナス（不適切な位置）")
     else:
-        st.write("結果: ちょうど良い位置")
+        st.write("結果: イーブン（ちょうど45度）")
 
 st.write("注意: この計算はアップウィンドのみを想定しています。")
+st.write("判定基準: 上マークの角度と帆走角度の差が45度以内ならプラス、45度を超えるとマイナス、45度ちょうどならイーブンです。")
