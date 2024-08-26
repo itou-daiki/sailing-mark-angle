@@ -4,6 +4,7 @@ st.title("上マーク角度計算補助ツール")
 
 mark_angle = st.number_input("本船から見た上マークの角度（度）", min_value=0, max_value=360, value=0, step=1)
 close_hauled_angle = st.number_input("自艇のクローズホールドの帆走角度（度）", min_value=0, max_value=360, value=45, step=1)
+current_tack = st.radio("現在のタック", ("ポート", "スターボード"))
 
 angle_difference = mark_angle - close_hauled_angle
 
@@ -13,10 +14,16 @@ if angle_difference > 180:
 elif angle_difference < -180:
     angle_difference += 360
 
-# 角度の差の絶対値を計算
-abs_angle_difference = abs(angle_difference)
+# タックに応じて角度の差を調整
+if current_tack == "ポート":
+    adjusted_difference = angle_difference
+else:  # スターボードの場合
+    adjusted_difference = -angle_difference
 
-st.write(f"上マークと帆走角度の差: {angle_difference:.1f}度")
+# 角度の差の絶対値を計算
+abs_angle_difference = abs(adjusted_difference)
+
+st.write(f"上マークと帆走角度の差: {adjusted_difference:.1f}度")
 
 if abs_angle_difference < 45:
     st.write("結果: プラス（良好な位置）")
@@ -25,5 +32,11 @@ elif abs_angle_difference > 45:
 else:
     st.write("結果: イーブン（ちょうど45度）")
 
+if adjusted_difference > 0:
+    st.write("アクション: そのまま帆走を続ける")
+else:
+    st.write("アクション: タックを検討する")
+
 st.write("注意: この計算はアップウィンドのみを想定しています。")
 st.write("判定基準: 上マークの角度と帆走角度の差が45度以内ならプラス、45度を超えるとマイナス、45度ちょうどならイーブンです。")
+st.write("タックの影響: ポートタックの場合は角度差をそのまま使用し、スターボードタックの場合は角度差の符号を反転させて計算します。")
