@@ -1,4 +1,6 @@
 import streamlit as st
+import plotly.graph_objects as go
+import numpy as np
 
 # ページ設定
 st.set_page_config(page_title="上マーク角度計算補助ツール", layout="wide")
@@ -46,20 +48,77 @@ st.markdown("<p class='big-font'>上マークと帆走角度の差:</p>", unsafe
 st.markdown(f"<p class='medium-font'>{angle_difference:.1f}°</p>", unsafe_allow_html=True)
 
 if criteria < 45:
-    st.markdown("<div class='result plus'>", unsafe_allow_html=True)
-    st.markdown("<p class='medium-font'>結果: プラス（良好な位置）</p>", unsafe_allow_html=True)
-    st.markdown("<p class='small-font'>アクション: そのまま帆走を続ける</p>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    result_class = "plus"
+    result_text = "プラス（良好な位置）"
+    action_text = "そのまま帆走を続ける"
 elif criteria > 45:
-    st.markdown("<div class='result minus'>", unsafe_allow_html=True)
-    st.markdown("<p class='medium-font'>結果: マイナス（不適切な位置）</p>", unsafe_allow_html=True)
-    st.markdown("<p class='small-font'>アクション: タックを検討する</p>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    result_class = "minus"
+    result_text = "マイナス（不適切な位置）"
+    action_text = "タックを検討する"
 else:
-    st.markdown("<div class='result even'>", unsafe_allow_html=True)
-    st.markdown("<p class='medium-font'>結果: イーブン（ちょうど45度）</p>", unsafe_allow_html=True)
-    st.markdown("<p class='small-font'>アクション: 状況に応じて判断（そのまま続けるかタックするか）</p>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    result_class = "even"
+    result_text = "イーブン（ちょうど45度）"
+    action_text = "状況に応じて判断（そのまま続けるかタックするか）"
+
+st.markdown(f"<div class='result {result_class}'>", unsafe_allow_html=True)
+st.markdown(f"<p class='medium-font'>結果: {result_text}</p>", unsafe_allow_html=True)
+st.markdown(f"<p class='small-font'>アクション: {action_text}</p>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Plotlyを使用した角度の可視化
+def create_angle_plot(mark_angle, close_hauled_angle, current_tack):
+    fig = go.Figure(layout=go.Layout(
+        title=go.layout.Title(text="角度の可視化"),
+        xaxis=go.layout.XAxis(range=[-1.2, 1.2], showticklabels=False, showgrid=False, zeroline=False),
+        yaxis=go.layout.YAxis(range=[-1.2, 1.2], showticklabels=False, showgrid=False, zeroline=False),
+        showlegend=False,
+        width=400,
+        height=400,
+        margin=dict(l=0, r=0, t=40, b=0)
+    ))
+
+    # 円を描画
+    circle_points = np.linspace(0, 2*np.pi, 100)
+    x_circle = np.cos(circle_points)
+    y_circle = np.sin(circle_points)
+    fig.add_trace(go.Scatter(x=x_circle, y=y_circle, mode='lines', line=dict(color='black', width=2)))
+
+    # 帆走角度の線を描画
+    x_close_hauled = [0, np.cos(np.radians(close_hauled_angle))]
+    y_close_hauled = [0, np.sin(np.radians(close_hauled_angle))]
+    fig.add_trace(go.Scatter(x=x_close_hauled, y=y_close_hauled, mode='lines', line=dict(color='blue', width=2, dash='dash')))
+
+    # マーク角度の線を描画
+    x_mark = [0, np.cos(np.radians(mark_angle))]
+    y_mark = [0, np.sin(np.radians(mark_angle))]
+    fig.add_trace(go.Scatter(x=x_mark, y=y_mark, mode='lines', line=dict(color='red', width=2)))
+
+    # 角度差の扇形を描画
+    if current_tack == "ポート":
+        start_angle = close_hauled_angle
+        end_angle = mark_angle
+    else:
+        start_angle = mark_angle
+        end_angle = close_hauled_angle
+    
+    if start_angle > end_angle:
+        start_angle, end_angle = end_angle, start_angle
+
+    angle_diff = np.linspace(start_angle, end_angle, 50)
+    x_diff = np.cos(np.radians(angle_diff))
+    y_diff = np.sin(np.radians(angle_diff))
+    fig.add_trace(go.Scatter(x=x_diff, y=y_diff, fill='tozeroy', fillcolor='rgba(0, 255, 0, 0.2)', mode='lines', line=dict(color='green', width=0)))
+
+    # 注釈を追加
+    fig.add_annotation(x=0.7*np.cos(np.radians(close_hauled_angle)), y=0.7*np.sin(np.radians(close_hauled_angle)),
+                       text="帆走角度", showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor='blue')
+    fig.add_annotation(x=0.7*np.cos(np.radians(mark_angle)), y=0.7*np.sin(np.radians(mark_angle)),
+                       text="マーク角度", showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor='red')
+
+    return fig
+
+# 角度の可視化を表示
+st.plotly_chart(create_angle_plot(mark_angle, close_hauled_angle, current_tack))
 
 st.markdown("<p class='small-font'>注意: この計算はアップウィンドのみを想定しています。</p>", unsafe_allow_html=True)
 
