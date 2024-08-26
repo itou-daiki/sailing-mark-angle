@@ -21,7 +21,12 @@ if current_tack == "ポート":
 else:  # スターボードの場合
     criteria = -angle_difference
 
-st.write(f"上マークと帆走角度の差: {angle_difference:.1f}度")
+st.write("")
+
+st.write(f"上マークと帆走角度の差:")
+st.subheader(f" {angle_difference:.1f}°")
+
+st.write("")
 
 if criteria < 45:
     st.write("結果: プラス（良好な位置）")
